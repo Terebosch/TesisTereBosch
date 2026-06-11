@@ -1,0 +1,240 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+    <!-- Buscador con autocompletado -->
+<div style="position:fixed; top:20px; right:20px; z-index:999; display:flex; flex-direction:column; align-items:flex-end;">
+  <div style="display:flex; gap:5px;">
+    <input type="text" id="searchBox" placeholder="Buscar nodo..." 
+           style="padding:8px; font-size:14px; border:1px solid #ccc; width:220px;">
+    <button id="clearBtn" 
+            style="padding:8px; font-size:14px; cursor:pointer;">Limpiar</button>
+  </div>
+  <ul id="suggestions" 
+      style="list-style:none; margin:4px 0 0 0; padding:0; background:white; border:1px solid #ccc; max-height:180px; overflow-y:auto; width:220px; display:none; font-size:14px;"></ul>
+</div>
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#aefeff", "font": {"color": "black"}, "id": "wb", "label": "WORLD\nBUILDING PARA LA\nINNOVACI\u00d3N SOCIAL", "physics": false, "shape": "dot", "x": 0, "y": 0}, {"color": "#a3e635", "font": {"color": "black"}, "id": "soc", "label": "Sociolog\u00eda de la Comunicaci\u00f3n", "physics": false, "shape": "dot", "x": 500.0, "y": 0.0}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "design", "label": "Estudios de Dise\u00f1o", "physics": false, "shape": "dot", "x": 383.022221559489, "y": 321.3938048432696}, {"color": "#f9a8d4", "font": {"color": "black"}, "id": "futuro", "label": "Estudios de Futuro", "physics": false, "shape": "dot", "x": 86.82408883346521, "y": 492.403876506104}, {"color": "#c084fc", "font": {"color": "black"}, "id": "innov", "label": "Estudios de Innovaci\u00f3n", "physics": false, "shape": "dot", "x": -249.9999999999999, "y": 433.01270189221935}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "philosophy", "label": "Filosof\u00eda de la Informaci\u00f3n", "physics": false, "shape": "dot", "x": -469.84631039295414, "y": 171.01007166283443}, {"color": "#ffe066", "font": {"color": "black"}, "id": "epist", "label": "Epistemolog\u00eda", "physics": false, "shape": "dot", "x": -469.8463103929542, "y": -171.01007166283432}, {"color": "#aefeff", "font": {"color": "black"}, "id": "medios", "label": "Estudios de Medios", "physics": false, "shape": "dot", "x": -250.00000000000023, "y": -433.01270189221924}, {"color": "#aefeff", "font": {"color": "black"}, "id": "mundos", "label": "Teor\u00eda de los Mundos Posibles", "physics": false, "shape": "dot", "x": 86.82408883346498, "y": -492.40387650610404}, {"color": "#aefeff", "font": {"color": "black"}, "id": "comunicacion", "label": "Teor\u00eda de la Comunicaci\u00f3n", "physics": false, "shape": "dot", "x": 383.0222215594889, "y": -321.3938048432698}, {"color": "#a3e635", "font": {"color": "black"}, "id": "rep", "label": "Teor\u00eda de la\n Representaci\u00f3n", "physics": false, "shape": "dot", "x": 750.0, "y": -250.0}, {"color": "#a3e635", "font": {"color": "black"}, "id": "narrativa", "label": "Teor\u00eda de la\nconstrucci\u00f3n\nnarrativa", "physics": false, "shape": "dot", "x": 750.0, "y": -150.0}, {"color": "#a3e635", "font": {"color": "black"}, "id": "construct", "label": "Construccionismo\n social", "physics": false, "shape": "dot", "x": 750.0, "y": -50.0}, {"color": "#a3e635", "font": {"color": "black"}, "id": "ww", "label": "\u201cWorldmaking\u201d", "physics": false, "shape": "dot", "x": 750.0, "y": 50.0}, {"color": "#a3e635", "font": {"color": "black"}, "id": "cultural", "label": "Estudios Culturales", "physics": false, "shape": "dot", "x": 750.0, "y": 150.0}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "sistemico", "label": "Dise\u00f1o Sist\u00e9mico", "physics": false, "shape": "dot", "x": 767.3696152451953, "y": 252.27737432921103}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "transicion", "label": "Dise\u00f1o de Transici\u00f3n", "physics": false, "shape": "dot", "x": 703.0908542765414, "y": 328.8818186411088}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "regen", "label": "Dise\u00f1o Regenerativo", "physics": false, "shape": "dot", "x": 638.8120933078875, "y": 405.48626295300664}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "anticip", "label": "Dise\u00f1o Anticipatorio", "physics": false, "shape": "dot", "x": 574.5333323392335, "y": 482.09070726490444}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "ficcion", "label": "Dise\u00f1o de Ficci\u00f3n", "physics": false, "shape": "dot", "x": 510.2545713705796, "y": 558.6951515768022}, {"color": "#a78bfa", "font": {"color": "black"}, "id": "spec", "label": "Dise\u00f1o Especulativo", "physics": false, "shape": "dot", "x": 445.9758104019256, "y": 635.2995958887001}, {"color": "#f9a8d4", "font": {"color": "black"}, "id": "narr_cambio", "label": "Narratolog\u00eda del Futuro", "physics": false, "shape": "dot", "x": 277.957296202029, "y": 712.5585881091165}, {"color": "#f9a8d4", "font": {"color": "black"}, "id": "meta", "label": "Meta-narrativas del cambio", "physics": false, "shape": "dot", "x": 179.47652090080823, "y": 729.9234058758095}, {"color": "#f9a8d4", "font": {"color": "black"}, "id": "foresight", "label": "Estudios de Foresight", "physics": false, "shape": "dot", "x": 80.99574559958741, "y": 747.2882236425025}, {"color": "#c084fc", "font": {"color": "black"}, "id": "teoria_cambio", "label": "Teor\u00eda del Cambio", "physics": false, "shape": "dot", "x": -245.096189432334, "y": 724.519052838329}, {"color": "#c084fc", "font": {"color": "black"}, "id": "inn_emp", "label": "Innovaci\u00f3n Empresarial", "physics": false, "shape": "dot", "x": -331.6987298107779, "y": 674.519052838329}, {"color": "#c084fc", "font": {"color": "black"}, "id": "inn_soc", "label": "Innovaci\u00f3n Social", "physics": false, "shape": "dot", "x": -418.3012701892218, "y": 624.519052838329}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "transmedia", "label": "Estudios Transmedia", "physics": false, "shape": "dot", "x": -602.1634225917306, "y": 538.4228937300242}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "sistemas", "label": "Teor\u00eda de los Sistemas", "physics": false, "shape": "dot", "x": -636.3654369242975, "y": 444.45363165143334}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "cibernetica", "label": "Cibern\u00e9tica", "physics": false, "shape": "dot", "x": -670.5674512568644, "y": 350.4843695728425}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "ia", "label": "Inteligencia Artificial", "physics": false, "shape": "dot", "x": -704.7694655894312, "y": 256.51510749425165}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "ic", "label": "Inteligencia Colectiva", "physics": false, "shape": "dot", "x": -738.971479921998, "y": 162.5458454156608}, {"color": "#66b3ff", "font": {"color": "black"}, "id": "dp", "label": "Dise\u00f1o Participativo", "physics": false, "shape": "dot", "x": -773.173494254565, "y": 68.57658333706996}, {"color": "#ffe066", "font": {"color": "black"}, "id": "antro", "label": "Antropolog\u00eda", "physics": false, "shape": "dot", "x": -790.2745014208484, "y": -21.59195229777424}, {"color": "#ffe066", "font": {"color": "black"}, "id": "teoria_liter", "label": "Teor\u00eda Literaria", "physics": false, "shape": "dot", "x": -756.0724870882816, "y": -115.56121437636509}, {"color": "#ffe066", "font": {"color": "black"}, "id": "filo_leng", "label": "Filosof\u00eda del Lenguaje", "physics": false, "shape": "dot", "x": -721.8704727557148, "y": -209.53047645495593}, {"color": "#ffe066", "font": {"color": "black"}, "id": "narrato", "label": "Narratolog\u00eda", "physics": false, "shape": "dot", "x": -687.6684584231479, "y": -303.4997385335468}, {"color": "#ffe066", "font": {"color": "black"}, "id": "semio", "label": "Semi\u00f3tica", "physics": false, "shape": "dot", "x": -653.466444090581, "y": -397.4690006121376}]);
+                  edges = new vis.DataSet([{"from": "wb", "to": "soc"}, {"from": "wb", "to": "design"}, {"from": "wb", "to": "futuro"}, {"from": "wb", "to": "innov"}, {"from": "wb", "to": "philosophy"}, {"from": "wb", "to": "epist"}, {"from": "wb", "to": "medios"}, {"from": "wb", "to": "mundos"}, {"from": "wb", "to": "comunicacion"}, {"from": "soc", "to": "rep"}, {"from": "soc", "to": "narrativa"}, {"from": "soc", "to": "construct"}, {"from": "soc", "to": "ww"}, {"from": "soc", "to": "cultural"}, {"from": "design", "to": "sistemico"}, {"from": "design", "to": "transicion"}, {"from": "design", "to": "regen"}, {"from": "design", "to": "anticip"}, {"from": "design", "to": "ficcion"}, {"from": "design", "to": "spec"}, {"from": "futuro", "to": "narr_cambio"}, {"from": "futuro", "to": "meta"}, {"from": "futuro", "to": "foresight"}, {"from": "innov", "to": "teoria_cambio"}, {"from": "innov", "to": "inn_emp"}, {"from": "innov", "to": "inn_soc"}, {"from": "philosophy", "to": "transmedia"}, {"from": "philosophy", "to": "sistemas"}, {"from": "philosophy", "to": "cibernetica"}, {"from": "philosophy", "to": "ia"}, {"from": "philosophy", "to": "ic"}, {"from": "philosophy", "to": "dp"}, {"from": "epist", "to": "antro"}, {"from": "epist", "to": "teoria_liter"}, {"from": "epist", "to": "filo_leng"}, {"from": "epist", "to": "narrato"}, {"from": "epist", "to": "semio"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"nodes": {"shape": "dot", "font": {"size": 18, "face": "Tahoma"}}, "edges": {"width": 2, "smooth": true}, "physics": {"enabled": false}, "interaction": {"hover": true, "tooltipDelay": 200, "hideEdgesOnDrag": false, "navigationButtons": true, "keyboard": true}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  const searchBox = document.getElementById("searchBox");
+const clearBtn = document.getElementById("clearBtn");
+const suggestions = document.getElementById("suggestions");
+
+function focusNode(id) {
+  network.selectNodes([id]);
+  network.focus(id, {
+    scale: 1.6,
+    animation: {
+      duration: 800,
+      easingFunction: "easeInOutQuad"
+    }
+  });
+}
+
+function showSuggestions(query) {
+  const filtered = nodes.get().filter(node => node.label.toLowerCase().includes(query.toLowerCase()));
+  suggestions.innerHTML = "";
+  filtered.forEach(node => {
+    const li = document.createElement("li");
+    li.textContent = node.label;
+    li.style.padding = "6px";
+    li.style.cursor = "pointer";
+    li.addEventListener("click", () => {
+      searchBox.value = node.label;
+      focusNode(node.id);
+      suggestions.style.display = "none";
+    });
+    suggestions.appendChild(li);
+  });
+  suggestions.style.display = filtered.length ? "block" : "none";
+}
+
+searchBox.addEventListener("input", () => {
+  const query = searchBox.value.trim();
+  if (query.length > 0) {
+    showSuggestions(query);
+  } else {
+    suggestions.style.display = "none";
+    network.unselectAll();
+  }
+});
+
+clearBtn.addEventListener("click", () => {
+  searchBox.value = "";
+  suggestions.style.display = "none";
+  network.unselectAll();
+  network.moveTo({
+    position: {x: 0, y: 0},
+    scale: 1,
+    animation: {
+      duration: 1000,
+      easingFunction: "easeInOutQuad"
+    }
+  });
+});
+
+document.addEventListener("click", event => {
+  if (!searchBox.contains(event.target) && !suggestions.contains(event.target)) {
+    suggestions.style.display = "none";
+  }
+});
+
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+             window.onload = function () {
+  const revealOrder = ['wb', 'epist', 'antro', 'teoria_liter', 'filo_leng',
+    'narrato', 'semio', 'soc', 'rep', 'narrativa', 'construct', 'ww',
+    'cultural', 'philosophy', 'transmedia', 'sistemas', 'cibernetica', 
+    'ia', 'ic', 'dp', 'medios', 'mundos', 'comunicacion', 
+    'design', 'sistemico', 'transicion', 'regen', 'anticip', 'ficcion',
+    'spec', 'futuro', 'narr_cambio', 'meta', 'foresight', 'innov',
+    'teoria_cambio', 'inn_emp', 'inn_soc'
+  ];
+
+  function runAnimation() {
+    // Hide all in the order list
+    const hidden = revealOrder.map(id => {
+      const node = nodes.get(id);
+      return { ...node, hidden: true };
+    });
+    nodes.update(hidden);
+
+    // Reveal one by one
+    revealOrder.forEach((id, i) => {
+      setTimeout(() => {
+        nodes.update({ id: id, hidden: false });
+      }, i * 300); // Adjust delay per node here
+    });
+  }
+
+  // Initial animation on load
+  runAnimation();
+
+  // If button exists, attach click listener
+  const button = document.getElementById("revealBtn");
+  if (button) {
+    button.addEventListener("click", runAnimation);
+  }
+};
+
+
+
+        </script>
+        <div style="position:fixed; bottom:20px; right:20px; z-index:999;">
+  <button id="revealBtn" class="btn btn-primary">Repetir Animación</button>
+</div>
+    </body>
+</html>
