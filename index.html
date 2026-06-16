@@ -216,25 +216,21 @@ document.addEventListener("click", event => {
     revealOrder.forEach((id, i) => {
       setTimeout(() => {
         nodes.update({ id: id, hidden: false });
-      }, i * 300); // Adjust delay per node here
+      }, i * 300); // 300ms delay per node
     });
+
+    // NEW: Calculate total animation time and restart it
+    const totalDuration = revealOrder.length * 300;
+    const pauseBeforeRestart = 2000; // 2-second pause before it starts over
+    
+    // Call runAnimation again after the current loop + pause finishes
+    setTimeout(runAnimation, totalDuration + pauseBeforeRestart);
   }
 
   // Initial animation on load
   runAnimation();
-
-  // If button exists, attach click listener
-  const button = document.getElementById("revealBtn");
-  if (button) {
-    button.addEventListener("click", runAnimation);
-  }
 };
 
-
-
         </script>
-        <div style="position:fixed; bottom:20px; right:20px; z-index:999;">
-  <button id="revealBtn" class="btn btn-primary">Repetir Animación</button>
-</div>
     </body>
 </html>
